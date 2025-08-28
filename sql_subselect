@@ -1,0 +1,38 @@
+
+
+SELECT location,SUM(prcp) sum_prcp
+-- subquery in SELECT clause
+,(SELECT SUM(prcp) FROM data_new) total_sum
+FROM data_new
+GROUP BY location;
+
+-- subquery in WHERE clause
+SELECT DISTINCT location
+FROM data_new
+WHERE prcp > (SELECT AVG(prcp) FROM data_new)
+
+
+-- subquery in FROM clause
+-- what is an average of yearly prcp?
+
+
+SELECT AVG(prcp_sum)
+FROM
+-- table with yearly sums
+(
+SELECT SUM(prcp) prcp_sum
+FROM data_new
+GROUP BY YEAR([date])) T;
+
+
+-- on a single row, year, yearly prcp, yearly prcp of the previous year
+
+WITH yearly_data AS (
+SELECT
+YEAR([date]) AS "year",ROUND(SUM([prcp]),1) AS "prcp_sum"
+FROM data_new
+GROUP BY YEAR ([date])
+)
+SELECT cy.*, py.prcp_sum FROM yearly_data cy -- (alias for cy)
+LEFT JOIN yearly_data py ON cy.year = py.year + 1
+ORDER BY [year];
